@@ -1,99 +1,80 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 
-interface Entry {
-  tins: number;
-  date: string;
-}
+export default function Home() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-export default function WaterBottleApp() {
-  const [tins, setTins] = useState<number>(1);
-  const [date, setDate] = useState<string>("");
-  const [history, setHistory] = useState<Entry[]>([]);
-
-  // Load history from localStorage on first render
+  // If already logged in, go straight to form
   useEffect(() => {
-    const storedData = localStorage.getItem("waterTinsHistory");
-    if (storedData) {
-      setHistory(JSON.parse(storedData));
-    }
-  }, []);
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) router.replace("/form");
+    });
+  }, [router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!date) return;
+  const signUp = async () => {
+    setLoading(true);
+    setMessage("");
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) setMessage("❌ " + error.message);
+    else setMessage("✅ Signup successful! Check your email to confirm.");
+    setLoading(false);
+  };
 
-    const newEntry: Entry = { tins, date };
-    const updatedHistory: Entry[] = [...history, newEntry];
-
-    setHistory(updatedHistory);
-    localStorage.setItem("waterTinsHistory", JSON.stringify(updatedHistory));
-
-    setDate("");
-    setTins(1);
+  const signIn = async () => {
+    setLoading(true);
+    setMessage("");
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setMessage("❌ " + error.message);
+    else router.push("/form");
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-blue-50">
-      <h1 className="text-2xl font-bold mb-6">Water Bottle Tracker</h1>
+    <div className="flex flex-col items-center p-10">
+      <h1 className="text-2xl font-bold mb-4">Water Bottle App</h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-2xl p-6 w-full max-w-md"
-      >
-        <label className="block mb-4">
-          <span className="text-gray-700">Number of Water Tins</span>
-          <select
-            value={tins}
-            onChange={(e) => setTins(Number(e.target.value))}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-          >
-            {[1, 2, 3, 4, 5].map((num) => (
-              <option key={num} value={num}>
-                {num}
-              </option>
-            ))}
-          </select>
-        </label>
+      <input
+        className="border p-2 mb-2 w-64 rounded"
+        type="email"
+        placeholder="Enter email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        autoComplete="email"
+      />
+      <input
+        className="border p-2 mb-4 w-64 rounded"
+        type="password"
+        placeholder="Enter password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        autoComplete="current-password"
+      />
 
-        <label className="block mb-4">
-          <span className="text-gray-700">Date of Deposit</span>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            required
-          />
-        </label>
-
+      <div className="flex gap-3">
         <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded-xl hover:bg-blue-600"
+          onClick={signUp}
+          className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          disabled={loading}
         >
-          Submit
+          Sign Up
         </button>
-      </form>
-
-      <div className="mt-8 w-full max-w-md">
-        <h2 className="text-xl font-semibold mb-4">Submission History</h2>
-        {history.length === 0 ? (
-          <p className="text-gray-500">No data yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {history.map((entry, index) => (
-              <li
-                key={index}
-                className="bg-white p-3 rounded-xl shadow-sm flex justify-between"
-              >
-                <span>{entry.tins} Tin(s)</span>
-                <span>{entry.date}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <button
+          onClick={signIn}
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+          disabled={loading}
+        >
+          Sign In
+        </button>
       </div>
+
+      {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
     </div>
   );
 }

@@ -27,7 +27,7 @@ export default function WaterForm() {
 
   // Check session on mount
   useEffect(() => {
-    let unsub = supabase.auth.onAuthStateChange((_event, sess) => {
+    const unsub = supabase.auth.onAuthStateChange((_event, sess) => {
       if (sess?.user) {
         setUserId(sess.user.id);
       } else {

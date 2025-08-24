@@ -119,25 +119,40 @@ export default function WaterForm() {
     <div className="max-w-lg mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">💧 Water Bottle Tracker</h1>
-        <button onClick={logout} className="text-sm px-3 py-1 rounded bg-gray-700 text-white">
+        <button
+          onClick={logout}
+          className="text-sm px-3 py-1 rounded bg-gray-700 text-white"
+        >
           Logout
         </button>
       </div>
-
-      <form onSubmit={addEntry} className="bg-cyan-500 rounded-xl shadow p-4 mb-6 space-y-3">
+  
+      {/* Water Form */}
+      <form
+        onSubmit={addEntry}
+        className="bg-cyan-500 rounded-xl shadow p-4 mb-6 space-y-3"
+      >
         <div>
-          <label className="block text-sm font-medium mb-1">Number of Water Tins</label>
+          <label className="block text-sm font-medium mb-1">
+            Number of Water Tins
+          </label>
           <select
             value={tins}
             onChange={(e) => setTins(Number(e.target.value))}
             className="w-full border rounded px-3 py-2"
           >
-            {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+            {[1, 2, 3, 4, 5].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
           </select>
         </div>
-
+  
         <div>
-          <label className="block text-sm font-medium mb-1">Date of Deposit</label>
+          <label className="block text-sm font-medium mb-1">
+            Date of Deposit
+          </label>
           <input
             type="date"
             value={date}
@@ -146,7 +161,7 @@ export default function WaterForm() {
             required
           />
         </div>
-
+  
         <button
           type="submit"
           disabled={submitting}
@@ -154,10 +169,23 @@ export default function WaterForm() {
         >
           {submitting ? "Saving..." : "Submit"}
         </button>
-
+  
         {error && <p className="text-red-600 text-sm">{error}</p>}
       </form>
-
+  
+      {/* Total tins */}
+      {entries.length > 0 && (
+        <div className="mb-3 p-3 rounded bg-gray-100 dark:bg-gray-800">
+          <p className="font-medium">
+            ✅ Total Tins Submitted:{" "}
+            <span className="font-bold">
+              {entries.reduce((sum, e) => sum + e.tins, 0)}
+            </span>
+          </p>
+        </div>
+      )}
+  
+      {/* History */}
       <h2 className="text-lg font-semibold mb-2">Submission History</h2>
       {loadingEntries ? (
         <p>Loading entries…</p>
@@ -166,7 +194,10 @@ export default function WaterForm() {
       ) : (
         <ul className="space-y-2">
           {entries.map((entry) => (
-            <li key={entry.id} className="bg-cyan-500 p-3 rounded-xl shadow flex items-center justify-between">
+            <li
+              key={entry.id}
+              className="bg-cyan-500 p-3 rounded-xl shadow flex items-center justify-between"
+            >
               <div>
                 <div className="font-medium">{entry.tins} Tin(s)</div>
                 <div className="text-sm text-gray-600">{entry.date}</div>
